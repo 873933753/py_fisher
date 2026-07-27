@@ -1,0 +1,16 @@
+# 作用在 build context 根目录（fisher/），不是 docker/ 里。
+# Docker 只会读取「上下文根」下的 .dockerignore，故本文件必须留在 fisher/。
+
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+test/
+tests/
+*.md
+.python-version

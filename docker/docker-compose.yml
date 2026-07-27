@@ -1,0 +1,53 @@
+# 在本目录执行（需先复制 .env.docker.example → .env.docker 并填入真实值）：
+#   docker compose up -d --build
+# 或从项目根目录：
+#   docker compose -f docker/docker-compose.yml --project-directory docker up -d --build
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: py_fisher_db
+    env_file:
+      - .env.docker
+    ports:
+      - "3316:3306"   # 宿主机 3307，避免和本机 MySQL 3306 冲突
+    volumes:
+      - py_fisher_mysql_data:/var/lib/mysql
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    healthcheck:
+      # 使用容器内 env_file 注入的 MYSQL_ROOT_PASSWORD（勿在 compose 里写明文密码）
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: py_fisher_redis
+    ports:
+      - "6319:6379"   # 宿主机 6380，避免和本机 Redis 冲突
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: ..                    # fisher/：代码、requirements、alembic
+      dockerfile: docker/Dockerfile  # 相对 context
+    image: py_fisher_app:local
+    container_name: py_fisher_app
+    ports:
+      - "8010:8010"
+    env_file:
+      - .env.docker
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # 健康检查接口在 P2.3 再加
+
+volumes:
+  py_fisher_mysql_data:

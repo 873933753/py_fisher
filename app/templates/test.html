@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+</head>
+<body>
+  <div>hanber</div>
+  {# 这是模板注释，前端看不到 #}
+  <h1>{{content}}</h1>
+  
+  {# if判断 #}
+  {% if user.is_vip %}
+    <div class="vip-tag">VIP 用户</div>
+  {% endif %}
+
+  {# for循环 #}
+  <ul>
+    {% for item in list %}
+    <li>
+      {{item.name}}
+    </li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

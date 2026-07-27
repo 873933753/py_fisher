@@ -1,0 +1,4 @@
+# API 测试依赖（开发/CI 使用，不影响生产 requirements.txt）
+-r requirements.txt
+pytest>=8.0
+httpx>=0.27

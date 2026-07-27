@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+exclude = [
+  "venv",
+  ".venv",
+  "alembic/versions",
+  "test",              # 练习脚本，含故意非法语法
+  "**/auth copy.py",   # 备份文件
+]
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+
+[tool.ruff.lint]
+select = ["E", "F"]     # 先只开基础错误；暂不开 I/UP
+ignore = [
+  "E501",               # 行长：中文注释多，先放过
+  "E712",               # ORM 的 == False；别自动改
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app/web/__init__.py" = ["E402", "F401"]  # 副作用 import 注册路由
+"app/libs/helper.py" = ["E402"]           # 若 import 不在顶部
