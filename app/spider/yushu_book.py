@@ -11,9 +11,7 @@ APP_KEY = ISBN_KEY
 
 # 这里是根据关键字和ISBN搜索图书的类
 class YuShuBook:
-    isbn_url = (
-        f"{YU_SHU_API_BASE}/sysAboutUs/findInfo?isbn={{isbn}}&appKey={{appKey}}"
-    )
+    isbn_url = f"{YU_SHU_API_BASE}/sysAboutUs/findInfo?isbn={{isbn}}&appKey={{appKey}}"
     keyword_url = (
         f"{YU_SHU_API_BASE}/sysAboutUs/findInfo"
         "?current={page}&size={size}&bookName={keyword}&appKey={appKey}"

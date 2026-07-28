@@ -30,6 +30,7 @@ from app.services.drift import (
 
 drift_router = APIRouter(
     prefix="/drift",
+    tags=["drift"],
     dependencies=[Depends(get_current_user)],
 )
 

@@ -13,7 +13,7 @@ APP_KEY = ISBN_KEY
 def _to_int(value, default=0):
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return default
 
 

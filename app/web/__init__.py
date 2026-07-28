@@ -8,7 +8,6 @@ web_router = APIRouter(prefix="/web")
 # 导入book路由
 from app.web import book
 from app.web import product
-from app.web import test_html
 
 # 导入auth路由
 from app.web import auth

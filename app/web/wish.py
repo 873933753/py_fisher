@@ -16,6 +16,7 @@ from app.services.wish import redraw_wish, add_wish_to_list_service
 # 子路由：/gift 前缀 + 全局鉴权
 wish_router = APIRouter(
     prefix="/wish",
+    tags=["wish"],
     # 可以在该 router 下所有接口添加依赖，如：Depends(get_current_user)
     # 路由级：整组接口都要登录
     dependencies=[Depends(get_current_user)],  # 该 router 下所有接口都要登录

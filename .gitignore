@@ -8,8 +8,9 @@ venv/
 .env.prod
 .env.local
 .env.docker
+.env.docker.test
 !.env.docker.example
-# 文档默认忽略；企业级/实施计划入库
+# 文档默认忽略；实施计划入库
 docs/*
 # !docs/plan/
 # !docs/plan/**

@@ -166,3 +166,28 @@ alembic downgrade -1
    alembic upgrade head
 6. 自检配置：`.\venv\Scripts\python.exe -c "from app.secure import APP_ENV, DATABASE_URL; print(APP_ENV, DATABASE_URL[:40])"`
 7. 启动：`.\venv\Scripts\python.exe index.py`
+
+
+# ruff 使用
+` 本项目用 [Ruff](https://docs.astral.sh/ruff/) 做 **代码格式化** 和 **基础 lint**。配置见根目录 `pyproject.toml`。`
+## 安装
+```
+pip install ruff
+pip freeze | findstr ruff # 写入requirement
+```
+## 格式化
+`
+ruff format . - 格式化整个项目（推荐在仓库根目录执行）
+ruff format app/ - # 只格式化某个目录/文件
+ruff format app/web/auth.py
+ruff format --check . - # 仅检查，不修改文件（CI 可用）
+`
+## Lint
+当前只开启 E（pycodestyle）、F（pyflakes）规则；E501（行长）、E712（== False）已忽略。
+```
+# 检查
+ruff check .
+
+# 自动修复可修复项
+ruff check --fix .
+```
