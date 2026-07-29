@@ -21,6 +21,8 @@ def get_current_user(
     token: TokenDep,
     session: SessionDep,
 ) -> User:
+    if not token:
+        raise AppError("未登录或登录已过期", code=401, http_status=401)
     user_id = decode_access_token(token)
     if user_id is None:
         raise AppError("未登录或登录已过期", code=401, http_status=401)
