@@ -1,12 +1,13 @@
 # 数据库连接与会话管理
-from sqlmodel import create_engine, Session
-from app.secure import DATABASE_URL, SQL_ECHO
-from sqlalchemy import event
-from sqlalchemy.orm import with_loader_criteria
-from app.models.base import BaseModel
-
 # 上下文管理器
 from contextlib import contextmanager
+
+from sqlalchemy import event
+from sqlalchemy.orm import with_loader_criteria
+from sqlmodel import Session, create_engine
+
+from app.models.base import BaseModel
+from app.secure import DATABASE_URL, SQL_ECHO
 
 # SQLite 多线程下需要 check_same_thread=False；MySQL 不需要额外 connect_args
 connect_args = (

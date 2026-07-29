@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta, timezone
+
 import bcrypt
 import jwt
-from datetime import datetime, timezone, timedelta
-from app.secure import JWT_SECRET_KEY, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
+
+from app.secure import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 
 
 # 密码加密

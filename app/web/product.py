@@ -1,24 +1,23 @@
 from typing import Annotated, Any
 
-from fastapi import Query, Depends
-from pydantic import StringConstraints
+from fastapi import Depends, Query
+from pydantic import BaseModel, StringConstraints
 from sqlmodel import Session
 
+from app.database import get_session
+from app.libs.auth import get_current_user
 from app.libs.helper import is_isbn_or_key
-from app.schemas.product import ProductSearchData, ProductListData
-from app.schemas.trade import TradeListData
+from app.models.user import User
+from app.schemas.product import ProductListData, ProductSearchData
 from app.schemas.response import ApiResponse
+from app.schemas.trade import TradeListData
+from app.services.trade import get_trade_list as get_trade_list_service
 from app.setting import DEFAULT_PAGE_SIZE, PAGE_SIZE_MAX, PAGE_SIZE_MIN
 from app.spider.yushu_product import YuShuProduct
 from app.view_models.product import ProductCollectionViewModel, ProductViewModel
-from . import web_router
-from pydantic import BaseModel
 from app.view_models.trade import TradeInfo
-from app.database import get_session
-from app.models.user import User
-from app.libs.auth import get_current_user
-from app.services.trade import get_trade_list as get_trade_list_service
 
+from . import web_router
 
 SearchQuery = Annotated[
     str,

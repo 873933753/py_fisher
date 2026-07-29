@@ -1,7 +1,7 @@
 import re
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, AfterValidator
+from pydantic import AfterValidator, BaseModel
 
 
 def _validate_recipient_name(v: str) -> str:

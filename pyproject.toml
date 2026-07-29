@@ -14,7 +14,7 @@ indent-style = "space"
 quote-style = "double"
 
 [tool.ruff.lint]
-select = ["E", "F"]     # 先只开基础错误；暂不开 I/UP
+select = ["E", "F", "I"]  # I = isort（import 排序）
 ignore = [
   "E501",               # 行长：中文注释多，先放过
   "E712",               # ORM 的 == False；别自动改

@@ -1,17 +1,17 @@
+from typing import Annotated, Any
+
 from fastapi import APIRouter, Depends
-from app.schemas.response import ApiResponse
-from typing import Any, Annotated
-from app.libs.auth import get_current_user
 from pydantic import BaseModel, Field
-from app.view_models.trade import MyTrades
-from app.models.wish import Wish
-from app.schemas.pagination import Page, PageSize, PageData, paginate
-from app.setting import DEFAULT_PAGE_SIZE
-from app.schemas.product import HomeGiftItem
 
 from app.deps import CurrentSession, CurrentUser, get_own_active_wish_from_path
-from app.services.wish import redraw_wish, add_wish_to_list_service
-
+from app.libs.auth import get_current_user
+from app.models.wish import Wish
+from app.schemas.pagination import Page, PageData, PageSize, paginate
+from app.schemas.product import HomeGiftItem
+from app.schemas.response import ApiResponse
+from app.services.wish import add_wish_to_list_service, redraw_wish
+from app.setting import DEFAULT_PAGE_SIZE
+from app.view_models.trade import MyTrades
 
 # 子路由：/gift 前缀 + 全局鉴权
 wish_router = APIRouter(

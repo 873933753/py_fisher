@@ -1,11 +1,9 @@
-from app.libs.http_client import HTTP, HttpResult
-from app.libs.exceptions import SpiderError
-
-from app.setting import DEFAULT_PAGE_SIZE
-from app.secure import ISBN_KEY, YU_SHU_API_BASE
-
 # 通过 secure 加载 .env + .env.{APP_ENV}
 import app.secure  # noqa: F401
+from app.libs.exceptions import SpiderError
+from app.libs.http_client import HTTP, HttpResult
+from app.secure import ISBN_KEY, YU_SHU_API_BASE
+from app.setting import DEFAULT_PAGE_SIZE
 
 APP_KEY = ISBN_KEY
 

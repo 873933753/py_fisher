@@ -1,10 +1,11 @@
 import re  # 正则表达式
 from typing import Annotated
+
 from pydantic import (
-    BaseModel,
-    field_validator,
     AfterValidator,
+    BaseModel,
     ValidationInfo,
+    field_validator,
 )
 
 

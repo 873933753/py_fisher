@@ -1,12 +1,13 @@
-from sqlmodel import Field
 from typing import Optional
-from app.models.base import BaseModel
+
 from sqlalchemy import Column, String, func
-from sqlmodel import Session, select
+from sqlmodel import Field, Session, select
+
+from app.libs.exceptions import AppError
+from app.models.base import BaseModel
 from app.models.gift import Gift
 from app.models.wish import Wish
 from app.spider.yushu_product import YuShuProduct
-from app.libs.exceptions import AppError
 
 """ 
 适合加索引的场景：
@@ -55,8 +56,8 @@ class User(BaseModel, table=True):
 
     # 每两次索要必须送出一本
     def can_request_gift_more(self, session: Session) -> bool:
-        from app.models.drift import Drift
         from app.libs.enums import DriftStatus
+        from app.models.drift import Drift
 
         success_send_counter = session.exec(
             select(func.count())

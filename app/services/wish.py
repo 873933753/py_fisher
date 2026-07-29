@@ -1,10 +1,9 @@
 from sqlmodel import Session
 
 from app.database import auto_commit
-from app.models.wish import Wish
-
 from app.libs.exceptions import AppError
 from app.models.user import User
+from app.models.wish import Wish
 
 
 def redraw_wish(

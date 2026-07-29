@@ -1,32 +1,31 @@
-from fastapi import APIRouter, Depends, Body
-from app.libs.auth import get_current_user
 from typing import Annotated
-from app.schemas.response import ApiResponse
-from app.models.gift import Gift
-from app.forms.drift import DriftForm
-from app.models.drift import Drift
-from app.view_models.drift import DriftCollectionViewModel
-from app.schemas.pagination import PageData
-from app.schemas.drift import DriftItem
-from app.schemas.pagination import DEFAULT_PAGE_SIZE, paginate
+
+from fastapi import APIRouter, Body, Depends
 
 from app.deps import (
     CurrentSession,
     CurrentUser,
-    get_waiting_drift_as_requester,
-    get_waiting_drift_as_gifter,
-    get_mailable_drift_as_gifter,
-    get_requestable_gift_from_query,
-    get_requestable_gift_from_drift_form,
     can_send_dependency,
+    get_mailable_drift_as_gifter,
+    get_requestable_gift_from_drift_form,
+    get_requestable_gift_from_query,
+    get_waiting_drift_as_gifter,
+    get_waiting_drift_as_requester,
 )
-
+from app.forms.drift import DriftForm
+from app.libs.auth import get_current_user
+from app.models.drift import Drift
+from app.models.gift import Gift
+from app.schemas.drift import DriftItem
+from app.schemas.pagination import DEFAULT_PAGE_SIZE, PageData, paginate
+from app.schemas.response import ApiResponse
 from app.services.drift import (
     confirm_mailed,
     create_drift_request,
     redraw_drift_request,
     request_reject_service,
 )
+from app.view_models.drift import DriftCollectionViewModel
 
 drift_router = APIRouter(
     prefix="/drift",

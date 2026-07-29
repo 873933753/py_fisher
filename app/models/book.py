@@ -1,6 +1,8 @@
 # app/models/book.py
 from typing import Optional
+
 from sqlmodel import Field
+
 from app.models.base import BaseModel
 
 

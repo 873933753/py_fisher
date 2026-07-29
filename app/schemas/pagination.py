@@ -2,9 +2,9 @@ from typing import Annotated, Generic, List, TypeVar
 
 from fastapi import Query
 from pydantic import BaseModel
-from sqlmodel import Session, select, func
+from sqlmodel import Session, func, select
 
-from app.setting import DEFAULT_PAGE_SIZE, PAGE_SIZE_MIN, PAGE_SIZE_MAX
+from app.setting import DEFAULT_PAGE_SIZE, PAGE_SIZE_MAX, PAGE_SIZE_MIN
 
 # ---------- 1) 路由查询参数（各接口复用）----------
 Page = Annotated[int, Query(ge=1, le=999, description="页码，默认 1")]

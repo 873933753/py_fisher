@@ -3,7 +3,7 @@ import smtplib
 from email.message import EmailMessage
 
 from app.libs.templates import templates
-from app.secure import MAIL_USERNAME, MAIL_PASSWORD, MAIL_SERVER, MAIL_PORT, MAIL_SENDER
+from app.secure import MAIL_PASSWORD, MAIL_PORT, MAIL_SENDER, MAIL_SERVER, MAIL_USERNAME
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
 from typing import Optional
-from sqlmodel import Field
-from app.models.base import BaseModel
-from app.libs.enums import DriftStatus
+
 from sqlalchemy import Column, Integer
-from sqlmodel import select
+from sqlmodel import Field, select
+
+from app.libs.enums import DriftStatus
+from app.models.base import BaseModel
 
 
 class Drift(BaseModel, table=True):

@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from app.libs.exceptions import AppError
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import logging
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.libs.exceptions import AppError
 
 
 def register_exception_handlers(app: FastAPI) -> None:

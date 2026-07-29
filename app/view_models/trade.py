@@ -1,8 +1,10 @@
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+from app.schemas.product import HomeGiftItem
 from app.schemas.trade import TradeItem, TradeListData
 from app.view_models.product import ProductViewModel
-from app.schemas.product import HomeGiftItem
-from typing import Optional, List
-from pydantic import BaseModel
 
 
 class TradeInfo:

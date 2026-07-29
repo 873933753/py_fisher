@@ -1,11 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.errors import register_exception_handlers
-
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
 
 
 # 在应用启动和关闭时初始化和关闭数据库
@@ -20,7 +19,16 @@ async def lifespan(app: FastAPI):
 
 
 def create_app():
-    app = FastAPI(lifespan=lifespan)
+    # 生产禁用 /docs、/redoc
+    from app.secure import IS_PROD
+
+    app_kwargs = {"lifespan": lifespan}
+    if IS_PROD:
+        app_kwargs["openapi_url"] = None  # 同时禁用 /docs、/redoc
+
+    app = FastAPI(**app_kwargs)
+
+    # app = FastAPI(lifespan=lifespan)
     register_exception_handlers(app)
     register_apirouter(app)
 

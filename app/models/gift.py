@@ -1,13 +1,12 @@
-from sqlmodel import Field
-from typing import Optional, TYPE_CHECKING
-from sqlmodel import Relationship
-from app.models.base import BaseModel
-from sqlmodel import Session, select, func
-from app.spider.yushu_product import YuShuProduct
-from app.setting import RECENT_GIFT_COUNT
-from typing import List
-from app.models.wish import Wish
+from typing import TYPE_CHECKING, List, Optional
+
+from sqlmodel import Field, Relationship, Session, func, select
+
 from app.libs.exceptions import AppError
+from app.models.base import BaseModel
+from app.models.wish import Wish
+from app.setting import RECENT_GIFT_COUNT
+from app.spider.yushu_product import YuShuProduct
 
 # TYPE_CHECKING - 类型检查，避免循环导入
 if TYPE_CHECKING:

@@ -1,11 +1,14 @@
-from app.libs.helper import is_isbn_or_key
-from app.spider.yushu_book import YuShuBook
-from . import web_router
 from typing import Annotated
-from pydantic import StringConstraints
+
 from fastapi import Query
-from app.setting import DEFAULT_PAGE_SIZE, PAGE_SIZE_MIN, PAGE_SIZE_MAX
+from pydantic import StringConstraints
+
+from app.libs.helper import is_isbn_or_key
+from app.setting import DEFAULT_PAGE_SIZE, PAGE_SIZE_MAX, PAGE_SIZE_MIN
+from app.spider.yushu_book import YuShuBook
 from app.view_models.book import BookCollectionViewModel
+
+from . import web_router
 
 # 搜索关键字或 ISBN
 SearchQuery = Annotated[

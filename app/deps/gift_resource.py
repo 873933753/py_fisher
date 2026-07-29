@@ -1,6 +1,8 @@
-from fastapi import Path
 from typing import Annotated
+
+from fastapi import Path
 from sqlmodel import select
+
 from app.deps.common import CurrentSession, CurrentUser
 from app.libs.exceptions import AppError
 from app.models.gift import Gift

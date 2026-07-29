@@ -1,28 +1,33 @@
 # 登录注册模块
-from . import web_router
-from app.forms.auth import RegisterForm, LoginForm
-from app.schemas.response import ApiResponse
-from app.models.user import User
-from sqlmodel import Session
-from app.database import get_session, auto_commit
-from fastapi import Depends, Request, Form, BackgroundTasks
-from app.libs.security import hash_password, verify_password
-from app.libs.exceptions import AppError
-from sqlmodel import select
-from app.schemas.user import UserInfo, LoginResult
+from fastapi import BackgroundTasks, Depends, Form, Request
+from sqlmodel import Session, select
 
-# 导入生成访问令牌和登录结果模型
-from app.libs.security import create_access_token
-from app.libs.auth import get_current_user
+from app.database import auto_commit, get_session
 from app.forms.auth import (
     EmailForm,
+    LoginForm,
+    RegisterForm,
     ResetPasswordForm,
-    VerifyCodeForm,
     ResetPasswordTokenForm,
+    VerifyCodeForm,
 )
-from app.libs.security import create_reset_token, decode_reset_token
+from app.libs.auth import get_current_user
+from app.libs.exceptions import AppError
+
+# 导入生成访问令牌和登录结果模型
+from app.libs.security import (
+    create_access_token,
+    create_reset_token,
+    decode_reset_token,
+    hash_password,
+    verify_password,
+)
+from app.models.user import User
+from app.schemas.response import ApiResponse
+from app.schemas.user import LoginResult, UserInfo
 from app.setting import RESET_PASSWORD_CODE_TTL, RESET_PASSWORD_SEND_COOLDOWN
 
+from . import web_router
 
 """ 
 客户端 POST /register
@@ -95,7 +100,7 @@ def profile(current_user: User = Depends(get_current_user)):
     return ApiResponse(data=UserInfo.model_validate(current_user))
 
 
-# 忘记密码 - 发送重置密码邮件
+# 忘记密码 - 发送重置密码邮件链接
 @web_router.post("/forgetPassword", response_model=ApiResponse[dict])
 def forgetPassword(
     form: EmailForm,
@@ -113,11 +118,10 @@ def forgetPassword(
 
     background_tasks.add_task(
         send_email_safe,
-        # to=form.email,
-        to="tang_tk001@outlook.comxxx",
+        to=form.email,
         subject="重置你的密码",
         template="email/reset_password.html",
-        user={"email": "亲爱的用户"},
+        user={"email": form.email},
         reset_url=reset_url,
     )
     return ApiResponse(
@@ -147,8 +151,8 @@ def reset_password(
     session: Session = Depends(get_session),
 ):
     # 导入ValidationError-用于处理表单验证错误
-    from pydantic import ValidationError
     from fastapi.exceptions import RequestValidationError
+    from pydantic import ValidationError
 
     try:
         # 这里才会走 ResetPasswordForm 的长度/两次一致等规则
@@ -207,7 +211,6 @@ def forgetPassword_sendCode(
     background_tasks.add_task(
         send_email_safe,
         to=form.email,
-        # to='tang_tk001@outlook.comxxx',
         subject="重置你的密码",
         template="email/reset_password_code.html",
         user={"email": form.email},
@@ -230,8 +233,7 @@ def forgetPassword_verifyCode(
     if not user:
         raise AppError("邮箱不存在")
 
-    from app.libs.redis import redis_client
-    from app.libs.redis import reset_password_code_key
+    from app.libs.redis import redis_client, reset_password_code_key
 
     # 校验验证码
     stored_code = redis_client.get(reset_password_code_key(user.id))
