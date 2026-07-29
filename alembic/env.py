@@ -5,6 +5,7 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
+import sqlmodel.sql.sqltypes as sqltypes
 
 # 保证在 fisher/ 下执行 alembic 时能 import app
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -29,6 +30,15 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 target_metadata = SQLModel.metadata
 
 
+def render_item(type_, obj, autogen_context):
+    """把 SQLModel 的 AutoString 渲染成标准 sa.String"""
+    if type_ == "type" and isinstance(obj, sqltypes.AutoString):
+        if obj.length:
+            return f"sa.String(length={obj.length})"
+        return "sa.String()"
+    return False
+
+
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -37,6 +47,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        render_item=render_item,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -53,6 +64,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            render_item=render_item,
         )
         with context.begin_transaction():
             context.run_migrations()
