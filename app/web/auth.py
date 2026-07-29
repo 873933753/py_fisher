@@ -1,8 +1,9 @@
 # 登录注册模块
-from fastapi import BackgroundTasks, Depends, Form, Request
-from sqlmodel import Session, select
+from fastapi import BackgroundTasks, Form, Request
+from sqlmodel import select
 
-from app.database import auto_commit, get_session
+from app.database import auto_commit
+from app.deps import CurrentSession, CurrentUser
 from app.forms.auth import (
     EmailForm,
     LoginForm,
@@ -11,7 +12,6 @@ from app.forms.auth import (
     ResetPasswordTokenForm,
     VerifyCodeForm,
 )
-from app.libs.auth import get_current_user
 from app.libs.exceptions import AppError
 
 # 导入生成访问令牌和登录结果模型
@@ -43,7 +43,7 @@ FastAPI 用 RegisterForm 解析请求体
 # 注册接口
 # response_model - 响应模型，返回用户信息
 @web_router.post("/register", response_model=ApiResponse[UserInfo])
-def register(form: RegisterForm, session: Session = Depends(get_session)):
+def register(form: RegisterForm, session: CurrentSession):
     # 检查邮箱是否已注册
     existing = session.exec(select(User).where(User.email == form.email)).first()
     if existing:
@@ -69,7 +69,7 @@ def register(form: RegisterForm, session: Session = Depends(get_session)):
 
 # 登录接口
 @web_router.post("/login", response_model=ApiResponse[LoginResult])
-def login(form: LoginForm, session: Session = Depends(get_session)):
+def login(form: LoginForm, session: CurrentSession):
     # 检查邮箱密码是否匹配
     """
     1)按邮箱查用户
@@ -96,7 +96,7 @@ def login(form: LoginForm, session: Session = Depends(get_session)):
 # 验证JWT token的接口
 # 使用get_current_user装饰器获取当前用户，返回用户信息，给前端展示用户信息
 @web_router.get("/profile", response_model=ApiResponse[UserInfo])
-def profile(current_user: User = Depends(get_current_user)):
+def profile(current_user: CurrentUser):
     return ApiResponse(data=UserInfo.model_validate(current_user))
 
 
@@ -105,7 +105,7 @@ def profile(current_user: User = Depends(get_current_user)):
 def forgetPassword(
     form: EmailForm,
     background_tasks: BackgroundTasks,
-    session: Session = Depends(get_session),
+    session: CurrentSession,
 ):
     user = User.get_user_by_email(session, form.email)
     if not user:
@@ -145,10 +145,10 @@ def reset_password_page(token: str, request: Request):
 # Form接参 + Pydantic 校验
 @web_router.post("/reset/password/{token}", response_model=ApiResponse[dict])
 def reset_password(
+    session: CurrentSession,
     token: str,
     new_password: str = Form(...),
     confirm_password: str = Form(...),
-    session: Session = Depends(get_session),
 ):
     # 导入ValidationError-用于处理表单验证错误
     from fastapi.exceptions import RequestValidationError
@@ -178,7 +178,7 @@ def reset_password(
 def forgetPassword_sendCode(
     form: EmailForm,
     background_tasks: BackgroundTasks,
-    session: Session = Depends(get_session),
+    session: CurrentSession,
 ):
     user = User.get_user_by_email(session, form.email)
     if not user:
@@ -226,9 +226,7 @@ def forgetPassword_sendCode(
 
 # 验证验证码，返回reset_token
 @web_router.post("/forgetPassword/verifyCode", response_model=ApiResponse[dict])
-def forgetPassword_verifyCode(
-    form: VerifyCodeForm, session: Session = Depends(get_session)
-):
+def forgetPassword_verifyCode(form: VerifyCodeForm, session: CurrentSession):
     user = User.get_user_by_email(session, form.email)
     if not user:
         raise AppError("邮箱不存在")
@@ -267,9 +265,7 @@ def forgetPassword_verifyCode(
 
 # 校验凭证+重置密码
 @web_router.post("/forgetPassword/resetPassword", response_model=ApiResponse[dict])
-def forgetPassword_resetPassword(
-    form: ResetPasswordTokenForm, session: Session = Depends(get_session)
-):
+def forgetPassword_resetPassword(form: ResetPasswordTokenForm, session: CurrentSession):
     from app.libs.redis import redis_client
 
     result = decode_reset_token(form.reset_token)

@@ -2,22 +2,22 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from alembic import context
+import sqlmodel.sql.sqltypes as sqltypes
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
-import sqlmodel.sql.sqltypes as sqltypes
+
+from alembic import context
 
 # 保证在 fisher/ 下执行 alembic 时能 import app
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.secure import DATABASE_URL
-
 # 必须导入所有 table=True 的模型，否则 autogenerate 看不到表
 from app.models.book import Book  # noqa: F401
+from app.models.drift import Drift  # noqa: F401
 from app.models.gift import Gift  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.wish import Wish  # noqa: F401
-from app.models.drift import Drift  # noqa: F401
+from app.secure import DATABASE_URL
 
 config = context.config
 

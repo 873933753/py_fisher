@@ -1,13 +1,10 @@
 from typing import Annotated, Any
 
-from fastapi import Depends, Query
+from fastapi import Query
 from pydantic import BaseModel, StringConstraints
-from sqlmodel import Session
 
-from app.database import get_session
-from app.libs.auth import get_current_user
+from app.deps import CurrentSession, CurrentUser
 from app.libs.helper import is_isbn_or_key
-from app.models.user import User
 from app.schemas.product import ProductListData, ProductSearchData
 from app.schemas.response import ApiResponse
 from app.schemas.trade import TradeListData
@@ -84,9 +81,6 @@ def list(query: ProductListQuery):
     products.fill(yushu_product, "", page, size)
     return ApiResponse(data=products.data)
 
-
-CurrentSession = Annotated[Session, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
 
 # 获取该商品的所有赠送清单
 # @web_router.get('/product/gift', response_model=ApiResponse[TradeListData])

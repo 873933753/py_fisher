@@ -1,6 +1,7 @@
+import uvicorn
+
 from app import create_app
 from app.secure import IS_PROD
-import uvicorn
 
 app = create_app()
 

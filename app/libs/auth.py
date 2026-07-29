@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session
@@ -10,11 +12,14 @@ from app.models.user import User
 # tokenUrl 用于 Swagger 文档，填你的登录路径
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/web/login", auto_error=False)
 
+SessionDep = Annotated[Session, Depends(get_session)]
+TokenDep = Annotated[str | None, Depends(oauth2_scheme)]
 
-# 获取当前用户 ，如果未登录或登录已过期，返回401状态码
+
+# 获取当前用户；未登录或过期 → 401
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    session: Session = Depends(get_session),
+    token: TokenDep,
+    session: SessionDep,
 ) -> User:
     user_id = decode_access_token(token)
     if user_id is None:

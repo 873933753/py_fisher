@@ -1,15 +1,8 @@
-from typing import Annotated
-
-from fastapi import Depends
-from sqlmodel import Session
-
-from app.database import get_session
+from app.deps import CurrentSession
 from app.models.gift import Gift
 from app.schemas.response import ApiResponse
 from app.view_models.gift import MyGiftData, MyGifts
 from app.web import web_router
-
-CurrentSession = Annotated[Session, Depends(get_session)]
 
 
 # 获取赠送清单
