@@ -7,17 +7,19 @@ from sqlalchemy.orm import with_loader_criteria
 from sqlmodel import Session, create_engine
 
 from app.models.base import BaseModel
-from app.secure import DATABASE_URL, SQL_ECHO
+from app.secure import settings
 
 # SQLite 多线程下需要 check_same_thread=False；MySQL 不需要额外 connect_args
 connect_args = (
     {"check_same_thread": False}
-    if DATABASE_URL and DATABASE_URL.startswith("sqlite")
+    if settings.DATABASE_URL and settings.DATABASE_URL.startswith("sqlite")
     else {}
 )
 
 # 创建数据库引擎；echo 由 .env 中 SQL_ECHO 控制（true/1/yes 开启 SQL 日志）
-engine = create_engine(DATABASE_URL, echo=SQL_ECHO, connect_args=connect_args)
+engine = create_engine(
+    settings.DATABASE_URL, echo=settings.SQL_ECHO, connect_args=connect_args
+)
 
 
 # 不再使用init_db，使用Alembic迁移

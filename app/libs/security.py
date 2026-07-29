@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 
-from app.secure import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
+from app.secure import settings
 
 
 # 密码加密
@@ -23,19 +23,23 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # 生成访问令牌
 def create_access_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
         "sub": str(user_id),  # subject，放用户 id
         "type": "access_token",  # 区分登录 JWT
         "exp": expire,  # 过期时间
     }
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
 
 
 # 解码访问令牌
 def decode_access_token(token: str) -> int | None:
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         # 校验类型，防止重置密码token被用其他token解析，这里只能解析登录token
         if payload.get("type") != "access_token":
             return None
@@ -57,14 +61,18 @@ def create_reset_token(user_id: int, expiration: int = 300) -> str:
         "exp": expire,
         "jti": jti,  # 唯一标识，防止重放攻击
     }
-    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    token = jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     # return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return token, jti
 
 
 def decode_reset_token(token: str) -> int | None:
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         if payload.get("type") != "reset_password":
             return None
         return int(payload["sub"]), payload["jti"]

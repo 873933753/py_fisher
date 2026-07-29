@@ -67,7 +67,7 @@ py_fisher/
 ```powershell
 alembic upgrade head
 ```
-6.自检配置： `python(.\venv\Scripts\python.exe) -c "from app.secure import APP_ENV, DATABASE_URL; print(APP_ENV, DATABASE_URL[:40])"`
+6.自检配置： `python -c "from app.secure import settings; print(settings.APP_ENV, settings.DATABASE_URL[:40])"`
 7.启动:
 ```powershell
 alembic upgrade head
@@ -154,3 +154,6 @@ ruff check .
 # 自动修复可修复项
 ruff check --fix .
 ```
+
+# 测试骨架 pytest
+`python -m pytest`

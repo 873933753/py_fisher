@@ -4,14 +4,14 @@ from typing import Generator
 import redis
 from redis import Redis
 
-from app.secure import REDIS_URL
+from app.secure import settings
 
 
 @lru_cache
 def get_redis_client() -> Redis:
     """进程内单例，避免每次请求新建连接。"""
     return redis.from_url(
-        REDIS_URL,
+        settings.REDIS_URL,
         decode_responses=True,  # 存取都是 str，验证码更方便
     )
 

@@ -2,10 +2,10 @@
 import app.secure  # noqa: F401
 from app.libs.exceptions import SpiderError
 from app.libs.http_client import HTTP, HttpResult
-from app.secure import ISBN_KEY, YU_SHU_API_BASE
+from app.secure import settings
 from app.setting import DEFAULT_PAGE_SIZE
 
-APP_KEY = ISBN_KEY
+APP_KEY = settings.ISBN_KEY
 
 
 def _to_int(value, default=0):
@@ -17,11 +17,11 @@ def _to_int(value, default=0):
 
 class YuShuProduct:
     isbn_url = (
-        f"{YU_SHU_API_BASE}/product/queryByDictPage"
+        f"{settings.YU_SHU_API_BASE}/product/queryByDictPage"
         "?current={page}&size={size}&bookName={keyword}&appKey={appKey}"
     )
     keyword_url = (
-        f"{YU_SHU_API_BASE}/product/queryByDictPage"
+        f"{settings.YU_SHU_API_BASE}/product/queryByDictPage"
         "?current={page}&size={size}&bookName={keyword}&appKey={appKey}"
     )
 

@@ -1,17 +1,17 @@
 # 通过 secure 加载 .env + .env.{APP_ENV}
 import app.secure  # noqa: F401
 from app.libs.http_client import HTTP
-from app.secure import ISBN_KEY, YU_SHU_API_BASE
+from app.secure import settings
 from app.setting import DEFAULT_PAGE_SIZE
 
-APP_KEY = ISBN_KEY
+APP_KEY = settings.ISBN_KEY
 
 
 # 这里是根据关键字和ISBN搜索图书的类
 class YuShuBook:
-    isbn_url = f"{YU_SHU_API_BASE}/sysAboutUs/findInfo?isbn={{isbn}}&appKey={{appKey}}"
+    isbn_url = f"{settings.YU_SHU_API_BASE}/sysAboutUs/findInfo?isbn={{isbn}}&appKey={{appKey}}"
     keyword_url = (
-        f"{YU_SHU_API_BASE}/sysAboutUs/findInfo"
+        f"{settings.YU_SHU_API_BASE}/sysAboutUs/findInfo"
         "?current={page}&size={size}&bookName={keyword}&appKey={appKey}"
     )
 

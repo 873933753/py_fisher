@@ -3,7 +3,7 @@ import smtplib
 from email.message import EmailMessage
 
 from app.libs.templates import templates
-from app.secure import MAIL_PASSWORD, MAIL_PORT, MAIL_SENDER, MAIL_SERVER, MAIL_USERNAME
+from app.secure import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,15 +17,15 @@ def send_email(
 ):
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = MAIL_SENDER
+    msg["From"] = settings.MAIL_SENDER
     msg["To"] = to
 
     # jinja2渲染模板
     html = templates.get_template(template).render(**kwargs)
     msg.set_content(html, subtype="html")
 
-    with smtplib.SMTP_SSL(MAIL_SERVER, MAIL_PORT) as server:
-        server.login(MAIL_USERNAME, MAIL_PASSWORD)
+    with smtplib.SMTP_SSL(settings.MAIL_SERVER, settings.MAIL_PORT) as server:
+        server.login(settings.MAIL_USERNAME, settings.MAIL_PASSWORD)
         server.send_message(msg)
 
 

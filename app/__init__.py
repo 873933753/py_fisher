@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.errors import register_exception_handlers
+from app.secure import settings
 
 
 # 在应用启动和关闭时初始化和关闭数据库
@@ -20,10 +21,9 @@ async def lifespan(app: FastAPI):
 
 def create_app():
     # 生产禁用 /docs、/redoc
-    from app.secure import IS_PROD
 
     app_kwargs = {"lifespan": lifespan}
-    if IS_PROD:
+    if settings.IS_PROD:
         app_kwargs["openapi_url"] = None  # 同时禁用 /docs、/redoc
 
     app = FastAPI(**app_kwargs)
@@ -50,9 +50,8 @@ def register_apirouter(app):
     app.include_router(web_router)
 
     # 练习/调试路由仅非生产环境挂载
-    from app.secure import IS_PROD
 
-    if not IS_PROD:
+    if not settings.IS_PROD:
         from test import test_router
 
         app.include_router(test_router)

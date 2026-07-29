@@ -17,7 +17,7 @@ from app.models.drift import Drift  # noqa: F401
 from app.models.gift import Gift  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.wish import Wish  # noqa: F401
-from app.secure import DATABASE_URL
+from app.secure import settings
 
 config = context.config
 
@@ -25,7 +25,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # 用 .env 中的 DATABASE_URL 覆盖 alembic.ini
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 target_metadata = SQLModel.metadata
 
