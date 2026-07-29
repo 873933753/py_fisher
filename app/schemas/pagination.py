@@ -32,21 +32,24 @@ class PageData(BaseModel, Generic[T]):
 
 # ---------- 3) SQL 分页工具 ----------
 # 分页逻辑：先查询总条数，再查询本页数据
-def paginate(session: Session, statement, page: int = 1, size: int = DEFAULT_PAGE_SIZE):
-    """
-    对任意 select(...) 做分页。
-    返回: (本页数据列表, 总条数)
-    """
-    # 去掉 order_by 再 count，避免无意义排序影响 count
-    # count_stmt: 查询总条数的语句
-    # statement: 查询语句
+
+
+def paginate(
+    session: Session,
+    statement,
+    page: int = 1,
+    size: int = DEFAULT_PAGE_SIZE,
+    include_deleted: bool = False,
+):
+    opts = {"include_deleted": True} if include_deleted else {}
     count_stmt = select(func.count()).select_from(statement.order_by(None).subquery())
-    # total 总条数
-    total = session.exec(count_stmt).one()
-    # 在原查询基础上，添加 offset 和 limit
-    items = session.exec(
-        # 在原查询基础上，添加 offset 和 limit
-        # statement.offset(offset).limit(limit) - 跳过 offset 条，取 limit 条
-        statement.offset((page - 1) * size).limit(size)
-    ).all()
+    total = (
+        session.exec(count_stmt.execution_options(**opts)).one()
+        if opts
+        else session.exec(count_stmt).one()
+    )
+    items_stmt = statement.offset((page - 1) * size).limit(size)
+    if opts:
+        items_stmt = items_stmt.execution_options(**opts)
+    items = session.exec(items_stmt).all()
     return items, total

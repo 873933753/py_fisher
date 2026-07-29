@@ -83,6 +83,8 @@ def _filter_soft_deleted(execute_state):
     ):
         execute_state.statement = execute_state.statement.options(
             with_loader_criteria(
+                # baseModel中的is_deleted为0的表示未删除
+                # app.models.base.BaseModel 的子类 生效
                 BaseModel,
                 lambda cls: cls.is_deleted == 0,
                 include_aliases=True,

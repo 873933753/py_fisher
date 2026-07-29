@@ -12,6 +12,8 @@ from alembic import context
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # 必须导入所有 table=True 的模型，否则 autogenerate 看不到表
+
+from app.admin.models import AdminUser  # noqa: F401
 from app.models.book import Book  # noqa: F401
 from app.models.drift import Drift  # noqa: F401
 from app.models.gift import Gift  # noqa: F401

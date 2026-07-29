@@ -84,9 +84,8 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
 
-# 获取第一个参数校验失败的消息
-# 只取第一条错误,多个字段同时出错时，只返回第一个 message。对注册表单通常够用
 # 私有方法 - 只用于内部使用
+# 处理pydantic的参数校验失败 - 422 状态码
 def _first_validation_message(exc: RequestValidationError) -> str:
     errors = exc.errors()
     if not errors:
@@ -107,6 +106,8 @@ def _first_validation_message(exc: RequestValidationError) -> str:
         return f"{field} 必须是整数"
     if err_type == "greater_than":
         return f"{field} 必须大于 {err.get('ctx', {}).get('gt')}"
+    if err_type == "string_too_short":
+        return f"{field} 长度不正确"
 
     msg = err.get("msg", "参数校验失败")
     if msg.startswith("Value error, "):

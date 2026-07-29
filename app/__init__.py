@@ -45,9 +45,11 @@ def create_app():
 
 # 注册web路由
 def register_apirouter(app):
+    from app.admin.router import admin_router
     from app.web import web_router
 
     app.include_router(web_router)
+    app.include_router(admin_router, prefix="/admin")
 
     # 练习/调试路由仅非生产环境挂载
 
