@@ -25,6 +25,7 @@ class User(BaseModel, table=True):
     # primary_key=True 的主键默认就有索引，一般不需要再写 index=True
     id: Optional[int] = Field(default=None, primary_key=True)
     nickname: Optional[str] = Field(default=None, max_length=24)
+    avatar: Optional[str] = Field(default=None, max_length=255)
     phone_number: Optional[str] = Field(default=None, max_length=18, unique=True)
     email: str = Field(max_length=50, unique=True)
     confirmed: bool = Field(default=False)

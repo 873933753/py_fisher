@@ -1,11 +1,13 @@
 # 数据库连接与会话管理
 # 上下文管理器
 from contextlib import contextmanager
+from datetime import datetime
 
 from sqlalchemy import event
 from sqlalchemy.orm import with_loader_criteria
 from sqlmodel import Session, create_engine
 
+from app.admin.base import AdminBaseModel
 from app.models.base import BaseModel
 from app.secure import settings
 
@@ -90,3 +92,19 @@ def _filter_soft_deleted(execute_state):
                 include_aliases=True,
             )
         )
+
+
+_UPDATE_TIME_MODELS = (BaseModel, AdminBaseModel)
+
+
+# SQLAlchemy before_flush 事件
+# 监听Session的before_flush事件，任意继承 BaseModel / AdminBaseModel 的对象被修改时，自动写 update_time。
+# app/web/auth.py 注册用户、reset_password 等 → 只要 session.add + commit，都会自动更新
+@event.listens_for(Session, "before_flush")
+def _touch_update_time(session, flush_context, instances):
+    """任意继承 BaseModel / AdminBaseModel 的对象被修改时，自动写 update_time。"""
+    now = int(datetime.now().timestamp())
+    for obj in session.dirty:
+        if isinstance(obj, _UPDATE_TIME_MODELS):
+            if session.is_modified(obj, include_collections=False):
+                obj.update_time = now

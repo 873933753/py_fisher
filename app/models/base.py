@@ -25,6 +25,7 @@ class BaseModel(SQLModel, SoftDeleteMixin):
     # Unix 时间戳（秒）
     # 为模型添加创建时间，默认当前时间
     create_time: int = Field(default_factory=lambda: int(datetime.now().timestamp()))
+    update_time: int | None = Field(default=None)
 
     # attrs_dict: 字典，键为属性名，值为属性值
     def set_attrs(self, attrs_dict: dict):
@@ -33,3 +34,6 @@ class BaseModel(SQLModel, SoftDeleteMixin):
             # 只是把属性赋到对象上，并没有写入数据库
             if hasattr(self, key) and key != "id":
                 setattr(self, key, value)
+
+    def update_time_now(self) -> None:
+        self.update_time = int(datetime.now().timestamp())

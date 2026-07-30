@@ -75,3 +75,27 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+# oss配置
+class OSSSettings(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
+
+    OSS_ACCESS_KEY_ID: str
+    OSS_ACCESS_KEY_SECRET: str
+    OSS_BUCKET_NAME: str
+    OSS_ENDPOINT: str
+    OSS_PUBLIC_BASE_URL: str
+
+    @field_validator("OSS_PUBLIC_BASE_URL", "OSS_ENDPOINT")
+    @classmethod
+    def strip_trailing_slash(cls, v: str) -> str:
+        return v.rstrip("/")
+
+
+@lru_cache
+def get_oss_settings() -> OSSSettings:
+    return OSSSettings()
+
+
+oss_settings = get_oss_settings()

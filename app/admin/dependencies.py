@@ -1,7 +1,11 @@
 from typing import Annotated
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from sqlmodel import Session
 
 from app.admin.models import AdminUser
@@ -17,13 +21,21 @@ admin_oauth2_scheme = OAuth2PasswordBearer(
 )
 
 AdminSession = Annotated[Session, Depends(get_session)]
-AdminToken = Annotated[str | None, Depends(admin_oauth2_scheme)]
+# AdminToken = Annotated[str | None, Depends(admin_oauth2_scheme)]
+
+# 使用 Bearer Token 认证
+admin_bearer_scheme = HTTPBearer(auto_error=False)
+AdminToken = Annotated[str | None, Depends(admin_bearer_scheme)]
 
 
 def get_current_admin(
-    token: AdminToken,
+    # token: AdminToken,
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None, Depends(admin_bearer_scheme)
+    ],
     session: AdminSession,
 ) -> AdminUser:
+    token = credentials.credentials if credentials else None
     if not token:
         raise AppError("未登录或登录已过期", code=401, http_status=401)
 
