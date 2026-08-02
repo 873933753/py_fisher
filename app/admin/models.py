@@ -19,3 +19,4 @@ class AdminUser(AdminBaseModel, table=True):
     password_hash: str = Field(
         sa_column=Column("password", String(256), nullable=False)
     )
+    role: str = Field(default="operator", max_length=32, index=True)

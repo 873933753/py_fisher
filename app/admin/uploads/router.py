@@ -5,7 +5,10 @@ from app.admin.dependencies import CurrentAdmin
 from app.admin.uploads.schemas import UploadImageResult
 from app.libs.oss import save_image
 
-uploads_router = APIRouter(tags=["admin-uploads"])
+uploads_router = APIRouter(
+    tags=["admin-uploads"],
+    # dependencies=[Depends(require_permissions(PERM_UPLOAD_MANAGE))],
+)
 
 
 @uploads_router.post(

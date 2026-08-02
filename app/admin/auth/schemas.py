@@ -46,10 +46,12 @@ class AdminLoginIn(BaseModel):
         return v
 
 
-# 后台用户信息
+# 后台用户信息，登录和获取用户信息时使用
 class AdminInfo(BaseModel):
     id: int
     phone_number: str
+    role: str
+    permissions: list[str] = []  # 权限列表
     # 从数据库中获取数据时，自动将数据库中的数据转换为模型中的数据
     model_config = {"from_attributes": True}
 

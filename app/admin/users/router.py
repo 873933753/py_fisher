@@ -13,16 +13,22 @@ from app.deps import CurrentSession
 from app.schemas.pagination import Page, PageSize
 from app.setting import DEFAULT_PAGE_SIZE
 
-users_router = APIRouter(tags=["admin-users"])
+users_router = APIRouter(
+    tags=["admin-users"],
+    # dependencies=[Depends(require_permissions(PERM_USER_MANAGE))],
+)
 
 
-@users_router.get("/ping", response_model=ApiResponse[dict])
+@users_router.get(
+    "/ping",
+    response_model=ApiResponse[dict],
+    summary="前台用户模块健康检查",
+)
 def users_ping(current_admin: CurrentAdmin):
     return ApiResponse(data={"ok": True}, message="users ok")
 
 
-# 用户列表
-@users_router.get("")
+@users_router.get("", summary="前台用户列表")
 def users_list(
     current_admin: CurrentAdmin,
     session: CurrentSession,
