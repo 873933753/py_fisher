@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     APP_ENV: str = "dev"
     DATABASE_URL: str
     SQL_ECHO: bool = False
+    # 逗号分隔；空 = 不启用 CORS（或仅开发默认）
+    CORS_ORIGINS: str = ""  # 允许的跨域请求源，多个用逗号分隔
     # --------------------- 认证 ---------------------
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
@@ -62,6 +64,13 @@ class Settings(BaseSettings):
     @property
     def MAIL_SENDER(self) -> str:
         return f"Hanber <{self.MAIL_USERNAME}>"
+
+    # 解析CORS_ORIGINS为列表
+    @property
+    def cors_origin_list(self) -> list[str]:
+        if not self.CORS_ORIGINS.strip():
+            return []
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
 
 @lru_cache
