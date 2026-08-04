@@ -99,3 +99,22 @@ def get_oss_settings() -> OSSSettings:
 
 
 oss_settings = get_oss_settings()
+
+
+# 数据库连接池设置
+class DBPoolSettings(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
+
+    # 数据库连接池（生产建议显式配置）
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 3600  # 秒；小于 MySQL wait_timeout
+    DB_POOL_PRE_PING: bool = True
+
+
+@lru_cache
+def get_db_pool_settings() -> DBPoolSettings:
+    return DBPoolSettings()
+
+
+db_pool_settings = get_db_pool_settings()

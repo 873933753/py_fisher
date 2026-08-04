@@ -9,7 +9,7 @@ from sqlmodel import Session, create_engine
 
 from app.admin.base import AdminBaseModel
 from app.models.base import BaseModel
-from app.secure import settings
+from app.secure import db_pool_settings, settings
 
 # SQLite 多线程下需要 check_same_thread=False；MySQL 不需要额外 connect_args
 connect_args = (
@@ -20,7 +20,14 @@ connect_args = (
 
 # 创建数据库引擎；echo 由 .env 中 SQL_ECHO 控制（true/1/yes 开启 SQL 日志）
 engine = create_engine(
-    settings.DATABASE_URL, echo=settings.SQL_ECHO, connect_args=connect_args
+    settings.DATABASE_URL,
+    echo=settings.SQL_ECHO,
+    connect_args=connect_args,
+    # 数据库连接池
+    pool_size=db_pool_settings.DB_POOL_SIZE,  # 连接池中连接的数量
+    max_overflow=db_pool_settings.DB_MAX_OVERFLOW,  # 超出连接池大小时，允许创建的额外连接数
+    pool_recycle=db_pool_settings.DB_POOL_RECYCLE,  # 连接池中连接的回收时间（秒）
+    pool_pre_ping=db_pool_settings.DB_POOL_PRE_PING,  # 借出前是否探活,避免连接池中连接失效
 )
 
 
