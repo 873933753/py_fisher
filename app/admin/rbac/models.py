@@ -14,26 +14,6 @@ class AdminRole(AdminBaseModel, table=True):
     name: str = Field(max_length=64)
 
 
-# 权限模型
-class AdminPermission(AdminBaseModel, table=True):
-    __tablename__ = "admin_permission"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    code: str = Field(max_length=64, unique=True, index=True)  # user:list
-    name: str = Field(max_length=64)
-    group_name: str = Field(default="default", max_length=32)  # user / admin / upload
-
-
-# 角色-权限关联模型
-class AdminRolePermission(SQLModel, table=True):
-    """角色-权限关联（可不做软删，删行即解绑）。"""
-
-    __tablename__ = "admin_role_permission"
-
-    role_id: int = Field(foreign_key="admin_role.id", primary_key=True)
-    permission_id: int = Field(foreign_key="admin_permission.id", primary_key=True)
-
-
 # 菜单模型
 class AdminMenu(AdminBaseModel, table=True):
     __tablename__ = "admin_menu"
@@ -48,7 +28,6 @@ class AdminMenu(AdminBaseModel, table=True):
     icon: Optional[str] = Field(default=None, max_length=64)
     sort: int = Field(default=0)
     menu_type: str = Field(default="menu", max_length=16)  # directory | menu
-    permission_code: Optional[str] = Field(default=None, max_length=64)  # 权限码
 
 
 # 角色-菜单关联模型
@@ -64,8 +43,20 @@ class AdminMenuApi(AdminBaseModel, table=True):
     """菜单绑定的接口"""
 
     __tablename__ = "admin_menu_api"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     menu_id: int = Field(foreign_key="admin_menu.id", index=True)
     method: str = Field(max_length=16, default="*")  # GET/POST/PUT/PATCH/DELETE/*
     path_pattern: str = Field(max_length=255)  # /admin/users 或 /admin/users/**
     sort: int = Field(default=0)
+    remark: Optional[str] = Field(default=None, max_length=255)
+
+
+# 角色-菜单接口关联模型
+class AdminRoleMenuApi(SQLModel, table=True):
+    """角色拥有的菜单接口（角色勾选 API）。"""
+
+    __tablename__ = "admin_role_menu_api"
+
+    role_id: int = Field(foreign_key="admin_role.id", primary_key=True)
+    menu_api_id: int = Field(foreign_key="admin_menu_api.id", primary_key=True)

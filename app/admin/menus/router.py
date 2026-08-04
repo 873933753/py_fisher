@@ -1,34 +1,32 @@
 from fastapi import APIRouter
 
 from app.admin.auth.schemas import ApiResponse
+from app.admin.dependencies import CurrentAdmin
 from app.admin.menus.schemas import (
+    MenuApisOut,
+    MenuApisPutIn,
     MenuCreateIn,
     MenuItem,
     MenuTreeNode,
     MenuUpdateIn,
-    RoleMenuIdsIn,
-    RoleMenuIdsOut,
+    RoleAccessIn,
+    RoleAccessOut,
 )
 from app.admin.menus.service import (
-    MenuApisOut,
-    MenuApisPutIn,
     create_menu,
     delete_menu,
     get_all_menu_tree,
     get_menu,
     get_menu_tree_for_admin,
-    get_role_menu_ids,
+    get_role_access,
     list_menu_apis,
     set_menu_apis,
-    set_role_menu_ids,
+    set_role_access,
     update_menu,
 )
 from app.deps import CurrentSession
 
-menus_router = APIRouter(
-    tags=["admin-menus"],
-    # dependencies=[Depends(require_permissions(PERM_RBAC_MANAGE))],
-)
+menus_router = APIRouter(tags=["admin-menus"])
 
 """ 菜单管理 """
 
@@ -41,33 +39,6 @@ menus_router = APIRouter(
 )
 def rbac_menus_tree(session: CurrentSession):
     return ApiResponse(data=get_all_menu_tree(session), message="ok")
-
-
-# 查询角色已绑菜单
-@menus_router.get(
-    "/roles/{role_code}/menus",
-    response_model=ApiResponse[RoleMenuIdsOut],
-    summary="查询角色已绑菜单",
-)
-def get_role_menus(role_code: str, session: CurrentSession):
-    return ApiResponse(data=get_role_menu_ids(session, role_code), message="ok")
-
-
-# 覆盖角色菜单
-@menus_router.put(
-    "/roles/{role_code}/menus",
-    response_model=ApiResponse[RoleMenuIdsOut],
-    summary="覆盖角色菜单",
-)
-def update_role_menus(
-    role_code: str,
-    body: RoleMenuIdsIn,
-    session: CurrentSession,
-):
-    return ApiResponse(
-        data=set_role_menu_ids(session, role_code, body),
-        message="更新成功",
-    )
 
 
 """ 菜单项的增删改查 """
@@ -110,7 +81,7 @@ def rbac_menu_delete(menu_id: int, session: CurrentSession):
     return ApiResponse(data=None, message="删除成功")
 
 
-# 侧栏用：仅登录，该接口仅校验登录，不校验权限
+""" 侧栏用：仅登录，该接口仅校验登录，不校验权限 """
 user_menus_router = APIRouter(tags=["admin-menus"])
 
 
@@ -147,5 +118,29 @@ def menu_apis_get(menu_id: int, session: CurrentSession):
 def menu_apis_put(menu_id: int, body: MenuApisPutIn, session: CurrentSession):
     return ApiResponse(
         data=set_menu_apis(session, menu_id, body),
+        message="更新成功",
+    )
+
+
+""" 角色-菜单-接口关联 """
+
+
+@menus_router.get(
+    "/roles/{role_code}/access",
+    response_model=ApiResponse[RoleAccessOut],
+    summary="查询角色菜单与接口授权",
+)
+def get_role_access_api(role_code: str, session: CurrentSession):
+    return ApiResponse(data=get_role_access(session, role_code), message="ok")
+
+
+@menus_router.put(
+    "/roles/{role_code}/access",
+    response_model=ApiResponse[RoleAccessOut],
+    summary="覆盖角色菜单与接口授权",
+)
+def put_role_access_api(role_code: str, body: RoleAccessIn, session: CurrentSession):
+    return ApiResponse(
+        data=set_role_access(session, role_code, body),
         message="更新成功",
     )

@@ -13,10 +13,7 @@ from app.deps import CurrentSession
 from app.schemas.pagination import Page, PageSize
 from app.setting import DEFAULT_PAGE_SIZE
 
-users_router = APIRouter(
-    tags=["admin-users"],
-    # dependencies=[Depends(require_permissions(PERM_USER_MANAGE))],
-)
+users_router = APIRouter(tags=["admin-users"])
 
 
 @users_router.get(

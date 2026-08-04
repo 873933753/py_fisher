@@ -9,7 +9,6 @@ from app.admin.auth.schemas import (
 )
 from app.admin.auth.service import login_admin
 from app.admin.dependencies import CurrentAdmin
-from app.admin.rbac.service import list_permission_codes_for_client
 from app.deps import CurrentSession
 
 auth_router = APIRouter(tags=["admin-auth"])
@@ -40,11 +39,9 @@ def admin_login(body: AdminLoginIn, session: CurrentSession):
     summary="获取当前管理员信息",
 )
 def admin_profile(current_admin: CurrentAdmin, session: CurrentSession):
-    perms = list_permission_codes_for_client(session, current_admin.role)
     data = AdminInfo(
         id=current_admin.id,
         phone_number=current_admin.phone_number,
         role=current_admin.role,
-        permissions=perms,
     )
     return ApiResponse(data=data, message="ok")

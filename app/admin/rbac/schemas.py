@@ -8,18 +8,11 @@ class RoleItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PermissionItem(BaseModel):
-    id: int
-    code: str
-    name: str
-    group_name: str
-    model_config = {"from_attributes": True}
+class RoleCreateIn(BaseModel):
+    code: str = Field(min_length=1, max_length=32)  # 建议只允许 [a-z0-9_]
+    name: str = Field(min_length=1, max_length=64)
 
 
-class RolePermissionCodesOut(BaseModel):
-    role_code: str
-    codes: list[str]
-
-
-class RolePermissionCodesIn(BaseModel):
-    codes: list[str] = Field(default_factory=list)
+class RoleUpdateIn(BaseModel):
+    # code: str | None = Field(default=None, min_length=1, max_length=32)
+    name: str | None = Field(default=None, min_length=1, max_length=64)

@@ -22,6 +22,7 @@ class AdminAccountItem(DisabledFromDeletedMixin):
     phone_number: str
     create_time: FormattedDateTime
     role: str
+    role_name: str
 
     model_config = {"from_attributes": True}
 
@@ -29,6 +30,7 @@ class AdminAccountItem(DisabledFromDeletedMixin):
 class AdminAccountCreateIn(BaseModel):
     phone_number: str = Field(min_length=1, max_length=18)
     password: str = Field(min_length=6, max_length=64)
+    role: str = Field(min_length=1, max_length=32)
 
     @field_validator("phone_number")
     @classmethod
@@ -57,6 +59,7 @@ class AdminAccountUpdateIn(BaseModel):
     phone_number: Optional[str] = Field(default=None, max_length=18)
     password: Optional[str] = Field(default=None, min_length=6, max_length=64)
     is_disabled: bool | None = None
+    role: Optional[str] = Field(default=None, max_length=32)  # 有传才改
 
     @field_validator("phone_number")
     @classmethod

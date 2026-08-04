@@ -51,7 +51,6 @@ class AdminInfo(BaseModel):
     id: int
     phone_number: str
     role: str
-    permissions: list[str] = []  # 权限列表
     # 从数据库中获取数据时，自动将数据库中的数据转换为模型中的数据
     model_config = {"from_attributes": True}
 

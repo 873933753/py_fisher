@@ -2,24 +2,16 @@ from fastapi import APIRouter
 
 from app.admin.auth.schemas import ApiResponse
 from app.admin.menus.router import menus_router
-from app.admin.rbac.schemas import (
-    PermissionItem,
-    RoleItem,
-    RolePermissionCodesIn,
-    RolePermissionCodesOut,
-)
+from app.admin.rbac.schemas import RoleCreateIn, RoleItem, RoleUpdateIn
 from app.admin.rbac.service import (
-    get_role_permission_codes,
-    list_permissions,
+    create_role,
+    delete_role,
     list_roles,
-    set_role_permission_codes,
+    update_role,
 )
 from app.deps import CurrentSession
 
-rbac_router = APIRouter(
-    tags=["admin-rbac"],
-    # dependencies=[Depends(require_permissions(PERM_RBAC_MANAGE))],
-)
+rbac_router = APIRouter(tags=["admin-rbac"])
 
 
 @rbac_router.get("/ping", response_model=ApiResponse[dict])
@@ -34,50 +26,42 @@ def rbac_roles(session: CurrentSession):
     return ApiResponse(data=list_roles(session), message="ok")
 
 
-@rbac_router.get(
-    "/permissions",
-    response_model=ApiResponse[list[PermissionItem]],
-    summary="权限列表",
+""" 角色的创建和修改 """
+
+
+@rbac_router.post(
+    "/roles/create",
+    response_model=ApiResponse[RoleItem],
+    summary="创建角色",
 )
-def rbac_permissions(
-    session: CurrentSession,
-    group_name: str | None = None,
-):
-    return ApiResponse(
-        data=list_permissions(session, group_name=group_name),
-        message="ok",
-    )
+def rbac_role_create(body: RoleCreateIn, session: CurrentSession):
+    return ApiResponse(data=create_role(session, body), message="创建成功")
 
 
-# 角色权限获取并修改
-@rbac_router.get(
-    "/roles/{role_code}/permissions",
-    response_model=ApiResponse[RolePermissionCodesOut],
-    summary="查询角色已绑权限",
-    # dependencies=[Depends(require_permissions(PERM_RBAC_MANAGE))],
+@rbac_router.patch(
+    "/roles/update/{role_code}",
+    response_model=ApiResponse[RoleItem],
+    summary="更新角色",
 )
-def rbac_role_permissions_get(role_code: str, session: CurrentSession):
-    return ApiResponse(
-        data=get_role_permission_codes(session, role_code),
-        message="ok",
-    )
-
-
-@rbac_router.put(
-    "/roles/{role_code}/permissions",
-    response_model=ApiResponse[RolePermissionCodesOut],
-    summary="覆盖角色权限",
-    # dependencies=[Depends(require_permissions(PERM_RBAC_MANAGE))],
-)
-def rbac_role_permissions_put(
+def rbac_role_update(
     role_code: str,
-    body: RolePermissionCodesIn,
+    body: RoleUpdateIn,
     session: CurrentSession,
 ):
     return ApiResponse(
-        data=set_role_permission_codes(session, role_code, body),
+        data=update_role(session, role_code, body),
         message="更新成功",
     )
+
+
+@rbac_router.delete(
+    "/roles/delete/{role_code}",
+    response_model=ApiResponse[None],
+    summary="删除角色",
+)
+def rbac_role_delete(role_code: str, session: CurrentSession):
+    delete_role(session, role_code)
+    return ApiResponse(data=None, message="删除成功")
 
 
 # menu还是挂在rbac_router下

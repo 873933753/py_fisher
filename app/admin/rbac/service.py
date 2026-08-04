@@ -1,72 +1,11 @@
-from sqlmodel import Session, col, select
+from sqlmodel import Session, select
 
+from app.admin.models import AdminUser
 from app.admin.rbac.constants import ROLE_SUPER_ADMIN
-from app.admin.rbac.models import (
-    AdminPermission,
-    AdminRole,
-    AdminRolePermission,
-)
-from app.admin.rbac.schemas import (
-    PermissionItem,
-    RoleItem,
-    RolePermissionCodesIn,
-    RolePermissionCodesOut,
-)
+from app.admin.rbac.models import AdminRole, AdminRoleMenu, AdminRoleMenuApi
+from app.admin.rbac.schemas import RoleCreateIn, RoleItem, RoleUpdateIn
 from app.database import auto_commit
 from app.libs.exceptions import AppError
-
-
-# 加载角色权限码，返回权限码集合
-def load_permission_codes(session: Session, role_code: str) -> frozenset[str]:
-    """
-    根据角色 code 加载权限码。
-    super_admin 返回 {"*"}，与现有一致。
-    """
-    if role_code == ROLE_SUPER_ADMIN:
-        return frozenset({"*"})
-
-    stmt = (
-        select(AdminPermission.code)
-        .join(
-            AdminRolePermission,
-            col(AdminRolePermission.permission_id) == col(AdminPermission.id),
-        )
-        .join(
-            AdminRole,
-            col(AdminRole.id) == col(AdminRolePermission.role_id),
-        )
-        .where(
-            AdminRole.code == role_code,
-            AdminRole.is_deleted == 0,
-            AdminPermission.is_deleted == 0,
-        )
-    )
-    # 软删过滤对 AdminBaseModel 一般已生效；显式写上更直观
-    rows = session.exec(stmt).all()
-    # 返回角色拥有的权限码集合
-    return frozenset(rows)
-
-
-# 检查角色是否具备权限，返回bool
-def role_has_permission_db(session: Session, role_code: str, code: str) -> bool:
-    perms = load_permission_codes(session, role_code)
-    # 超级管理员拥有全部权限
-    if "*" in perms:
-        return True
-    # 非超管，检查角色是否具备权限
-    return code in perms
-
-
-# 获取客户端可用的权限码列表,给前端用即权限列表
-def list_permission_codes_for_client(session: Session, role_code: str) -> list[str]:
-    codes = load_permission_codes(session, role_code)
-    if "*" in codes:
-        rows = session.exec(
-            select(AdminPermission.code).where(AdminPermission.is_deleted == 0)
-        ).all()
-        # sorted排序，返回列表
-        return sorted(rows)
-    return sorted(codes)
 
 
 # 获取角色列表
@@ -77,22 +16,7 @@ def list_roles(session: Session) -> list[RoleItem]:
     return [RoleItem.model_validate(r) for r in rows]
 
 
-# 获取权限列表
-def list_permissions(
-    session: Session,
-    *,
-    group_name: str | None = None,
-) -> list[PermissionItem]:
-    stmt = select(AdminPermission).where(AdminPermission.is_deleted == 0)
-    if group_name:
-        stmt = stmt.where(AdminPermission.group_name == group_name)
-    stmt = stmt.order_by(AdminPermission.group_name, AdminPermission.id)
-    rows = session.exec(stmt).all()
-    return [PermissionItem.model_validate(r) for r in rows]
-
-
 """ 角色权限的修改 """
-# 先获取当前角色的权限，然后修改新权限
 
 
 # 获取角色或404
@@ -108,44 +32,59 @@ def _get_role_or_404(session: Session, role_code: str) -> AdminRole:
     return role
 
 
-# 获取角色权限码列表
-def get_role_permission_codes(
-    session: Session, role_code: str
-) -> RolePermissionCodesOut:
-    _get_role_or_404(session, role_code)
-    codes = list_permission_codes_for_client(session, role_code)
-    return RolePermissionCodesOut(role_code=role_code, codes=codes)
+# 校验角色是否存在
+def _require_role_code(session, role_code: str) -> AdminRole:
+    return _get_role_or_404(session, role_code.strip().lower())
 
 
-# 修改角色权限
-def set_role_permission_codes(
-    session: Session,
-    role_code: str,
-    body: RolePermissionCodesIn,
-) -> RolePermissionCodesOut:
-    if role_code == ROLE_SUPER_ADMIN:
-        raise AppError("超级管理员权限不可修改")
-    role = _get_role_or_404(session, role_code)
-    wanted = sorted(set(body.codes))
-    if wanted:
-        found = session.exec(
-            select(AdminPermission).where(
-                col(AdminPermission.code).in_(wanted),
-                AdminPermission.is_deleted == 0,
-            )
-        ).all()
-        found_codes = {p.code for p in found}
-        missing = set(wanted) - found_codes
-        if missing:
-            raise AppError(f"无效权限码: {', '.join(sorted(missing))}")
-    else:
-        found = []
+""" 角色的创建和修改 """
+
+
+def create_role(session, body: RoleCreateIn) -> RoleItem:
+    code = body.code.strip().lower()
+    # 可选：re.fullmatch(r"[a-z][a-z0-9_]{0,31}", code)
+    exists = session.exec(select(AdminRole).where(AdminRole.code == code)).first()
+    if exists:
+        raise AppError("角色码已存在")
     with auto_commit(session):
-        old = session.exec(
-            select(AdminRolePermission).where(AdminRolePermission.role_id == role.id)
-        ).all()
-        for row in old:
+        role = AdminRole(code=code, name=body.name.strip())
+        session.add(role)
+        session.flush()
+        session.refresh(role)
+    return RoleItem.model_validate(role)
+
+
+def update_role(session, role_code: str, body: RoleUpdateIn) -> RoleItem:
+    role = _get_role_or_404(session, role_code)
+    data = body.model_dump(exclude_unset=True)
+    if not data:
+        return RoleItem.model_validate(role)
+    with auto_commit(session):
+        if "name" in data and data["name"] is not None:
+            role.name = data["name"].strip()
+        session.add(role)
+    return RoleItem.model_validate(role)
+
+
+def delete_role(session, role_code: str) -> None:
+    if role_code == ROLE_SUPER_ADMIN:
+        raise AppError("不能删除超级管理员角色")
+    role = _get_role_or_404(session, role_code)
+
+    # 仍有账号在用
+    used = session.exec(
+        select(AdminUser.id).where(AdminUser.role == role.code).limit(1)
+    ).first()
+    if used is not None:
+        raise AppError("仍有账号使用该角色，无法删除")
+
+    with auto_commit(session):
+        for row in session.exec(
+            select(AdminRoleMenuApi).where(AdminRoleMenuApi.role_id == role.id)
+        ).all():
             session.delete(row)
-        for perm in found:
-            session.add(AdminRolePermission(role_id=role.id, permission_id=perm.id))
-    return get_role_permission_codes(session, role_code)
+        for row in session.exec(
+            select(AdminRoleMenu).where(AdminRoleMenu.role_id == role.id)
+        ).all():
+            session.delete(row)
+        session.delete(role)

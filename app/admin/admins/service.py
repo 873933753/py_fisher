@@ -6,11 +6,39 @@ from app.admin.admins.schemas import (
     AdminAccountUpdateIn,
 )
 from app.admin.models import AdminUser
+from app.admin.rbac.constants import ROLE_SUPER_ADMIN
+from app.admin.rbac.models import AdminRole
+from app.admin.rbac.service import _require_role_code
 from app.database import auto_commit
 from app.libs.exceptions import AppError
 from app.libs.security import hash_password
 from app.schemas.pagination import PageData, paginate
 from app.setting import DEFAULT_PAGE_SIZE
+
+
+# 获取角色名称映射，code -> name
+def _role_name_map(session: Session, codes: set[str]) -> dict[str, str]:
+    if not codes:
+        return {}
+    rows = session.exec(
+        select(AdminRole).where(
+            col(AdminRole.code).in_(codes),
+            AdminRole.is_deleted == 0,
+        )
+    ).all()
+    return {r.code: r.name for r in rows}
+
+
+# 转换为 AdminAccountItem
+def _to_account_item(admin: AdminUser, role_names: dict[str, str]) -> AdminAccountItem:
+    return AdminAccountItem(
+        id=admin.id,
+        phone_number=admin.phone_number,
+        create_time=admin.create_time,
+        role=admin.role,
+        role_name=role_names.get(admin.role, admin.role),
+        is_deleted=admin.is_deleted,
+    )
 
 
 def list_admin_accounts(
@@ -32,7 +60,8 @@ def list_admin_accounts(
             stmt = stmt.where(col(AdminUser.phone_number).like(f"%{kw}%"))
 
     rows, total = paginate(session, stmt, page, size, include_deleted=True)
-    items = [AdminAccountItem.model_validate(r) for r in rows]
+    names = _role_name_map(session, {r.role for r in rows})
+    items = [_to_account_item(r, names) for r in rows]
     return PageData.build(items, total, page, size)
 
 
@@ -49,13 +78,25 @@ def _get_admin_or_404(session: Session, admin_id: int) -> AdminUser:
 
 
 def get_admin_account(session: Session, admin_id: int) -> AdminAccountItem:
-    return AdminAccountItem.model_validate(_get_admin_or_404(session, admin_id))
+    admin = _get_admin_or_404(session, admin_id)
+    return _to_account_item(admin, _role_name_map(session, {admin.role}))
+
+
+def _ensure_can_assign_role(current_admin_role: str, target_role_code: str) -> None:
+    """非超管不能把账号设为超级管理员。"""
+    if (
+        target_role_code == ROLE_SUPER_ADMIN
+        and current_admin_role != ROLE_SUPER_ADMIN
+    ):
+        raise AppError("仅超级管理员可分配超级管理员角色")
 
 
 # 添加后台账号
 def create_admin_account(
     session: Session,
     body: AdminAccountCreateIn,
+    *,
+    current_admin_role: str,
 ) -> AdminAccountItem:
     exists = session.exec(
         select(AdminUser)
@@ -65,13 +106,16 @@ def create_admin_account(
     if exists:
         # 含已软删：表上 unique，占着号就不能再建
         raise AppError("手机号已被占用")
+    role = _require_role_code(session, body.role)
+    _ensure_can_assign_role(current_admin_role, role.code)
     admin = AdminUser(
         phone_number=body.phone_number,
         password_hash=hash_password(body.password),
+        role=role.code,
     )
     with auto_commit(session):
         session.add(admin)
-    return AdminAccountItem.model_validate(admin)
+    return _to_account_item(admin, {role.code: role.name})
 
 
 # 更新后台账号
@@ -81,6 +125,7 @@ def update_admin_account(
     body: AdminAccountUpdateIn,
     *,
     current_admin_id: int,
+    current_admin_role: str,
 ) -> AdminAccountItem:
     admin = _get_admin_or_404(session, admin_id)
     data = body.model_dump(exclude_unset=True)
@@ -108,12 +153,26 @@ def update_admin_account(
             raise AppError("手机号已被占用")
         admin.phone_number = phone
         data.pop("phone_number", None)
+
+    # 对角色进行校验
+    if "role" in data:
+        wanted = data.pop("role")
+        if (
+            admin_id == current_admin_id
+            and admin.role == ROLE_SUPER_ADMIN
+            and wanted.strip().lower() != ROLE_SUPER_ADMIN
+        ):
+            raise AppError("不能修改当前登录超管的角色")
+        role = _require_role_code(session, wanted)
+        _ensure_can_assign_role(current_admin_role, role.code)
+        admin.role = role.code
+
     # 一般不应再有剩余字段；若有可 setattr
     for key, value in data.items():
         setattr(admin, key, value)
     with auto_commit(session):
         session.add(admin)
-    return AdminAccountItem.model_validate(admin)
+    return _to_account_item(admin, _role_name_map(session, {admin.role}))
 
 
 # 删除后台账号

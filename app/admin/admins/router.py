@@ -14,17 +14,11 @@ from app.admin.admins.service import (
 )
 from app.admin.auth.schemas import ApiResponse
 from app.admin.dependencies import CurrentAdmin
-
-# from app.admin.rbac.constants import PERM_ADMIN_CREATE, PERM_ADMIN_UPDATE
 from app.deps import CurrentSession
 from app.schemas.pagination import Page, PageData, PageSize
 from app.setting import DEFAULT_PAGE_SIZE
 
-admins_router = APIRouter(
-    tags=["admin-admins"],
-    # 依赖：当前管理员须具备管理后台账号的权限
-    # dependencies=[Depends(require_permissions(PERM_ADMIN_MANAGE))],
-)
+admins_router = APIRouter(tags=["admin-admins"])
 
 
 @admins_router.get(
@@ -69,10 +63,7 @@ def admins_detail(
 
 # 创建后台账号
 @admins_router.post(
-    "/create",
-    response_model=ApiResponse[AdminAccountItem],
-    summary="创建后台账号",
-    # dependencies=[Depends(require_permissions(PERM_ADMIN_CREATE))],
+    "/create", response_model=ApiResponse[AdminAccountItem], summary="创建后台账号"
 )
 def admins_create(
     body: AdminAccountCreateIn,
@@ -80,7 +71,11 @@ def admins_create(
     session: CurrentSession,
 ):
     return ApiResponse(
-        data=create_admin_account(session, body),
+        data=create_admin_account(
+            session,
+            body,
+            current_admin_role=current_admin.role,
+        ),
         message="创建成功",
     )
 
@@ -90,8 +85,6 @@ def admins_create(
     "/update/{admin_id}",
     response_model=ApiResponse[AdminAccountItem],
     summary="更新后台账号",
-    # 依赖：当前管理员须具备更新后台账号的权限
-    # dependencies=[Depends(require_permissions(PERM_ADMIN_UPDATE))],
 )
 def admins_update(
     admin_id: int,
@@ -105,6 +98,7 @@ def admins_update(
             admin_id,
             body,
             current_admin_id=current_admin.id,
+            current_admin_role=current_admin.role,
         ),
         message="更新成功",
     )

@@ -17,10 +17,9 @@ from app.admin.models import AdminUser  # noqa: F401
 from app.admin.rbac.models import (  # noqa: F401
     AdminMenu,
     AdminMenuApi,
-    AdminPermission,
     AdminRole,
     AdminRoleMenu,
-    AdminRolePermission,
+    AdminRoleMenuApi,
 )
 from app.models.book import Book  # noqa: F401
 from app.models.drift import Drift  # noqa: F401

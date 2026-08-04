@@ -13,21 +13,9 @@ class MenuTreeNode(BaseModel):
     icon: str | None = None
     sort: int = 0
     menu_type: str
-    permission_code: str | None = None
     children: list["MenuTreeNode"] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
-
-
-# 角色-菜单集合，输出模型
-class RoleMenuIdsOut(BaseModel):
-    role_code: str
-    menu_ids: list[int]
-
-
-# 菜单id集合，输入模型
-class RoleMenuIdsIn(BaseModel):
-    menu_ids: list[int] = Field(default_factory=list)
 
 
 MenuType = Literal["directory", "menu"]
@@ -43,7 +31,6 @@ class MenuItem(BaseModel):
     icon: str | None = None
     sort: int = 0
     menu_type: str
-    permission_code: str | None = None
     model_config = {"from_attributes": True}
 
 
@@ -56,7 +43,6 @@ class MenuCreateIn(BaseModel):
     icon: str | None = Field(default=None, max_length=64)
     sort: int = 0
     menu_type: MenuType = "menu"
-    permission_code: str | None = Field(default=None, max_length=64)
 
 
 # 菜单修改,未传的字段不修改
@@ -68,7 +54,6 @@ class MenuUpdateIn(BaseModel):
     icon: str | None = Field(default=None, max_length=64)
     sort: int | None = None
     menu_type: MenuType | None = None
-    permission_code: str | None = Field(default=None, max_length=64)
 
 
 """ 菜单-绑定接口关联模型 """
@@ -82,14 +67,17 @@ class MenuApiItem(BaseModel):
     method: str
     path_pattern: str
     sort: int = 0
+    remark: str | None = None
     model_config = {"from_attributes": True}
 
 
 # 菜单-接口输入
 class MenuApiIn(BaseModel):
+    id: int | None = None  # 有则更新，无则新增
     method: str = "*"
     path_pattern: str = Field(min_length=1, max_length=255)
     sort: int = 0
+    remark: str | None = Field(default=None, max_length=255)
 
 
 # 菜单-接口批量修改输入
@@ -101,3 +89,15 @@ class MenuApisPutIn(BaseModel):
 class MenuApisOut(BaseModel):
     menu_id: int
     apis: list[MenuApiItem]
+
+
+# 角色-菜单-接口关联模型
+class RoleAccessOut(BaseModel):
+    role_code: str
+    menu_ids: list[int]
+    menu_api_ids: list[int]
+
+
+class RoleAccessIn(BaseModel):
+    menu_ids: list[int] = Field(default_factory=list)
+    menu_api_ids: list[int] = Field(default_factory=list)
