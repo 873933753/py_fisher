@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.admin.auth.schemas import ApiResponse
 from app.admin.dependencies import CurrentAdmin
@@ -139,8 +139,24 @@ def get_role_access_api(role_code: str, session: CurrentSession):
     response_model=ApiResponse[RoleAccessOut],
     summary="覆盖角色菜单与接口授权",
 )
-def put_role_access_api(role_code: str, body: RoleAccessIn, session: CurrentSession):
+def put_role_access_api(
+    request: Request,
+    role_code: str,
+    body: RoleAccessIn,
+    session: CurrentSession,
+    current_admin: CurrentAdmin,
+):
     return ApiResponse(
-        data=set_role_access(session, role_code, body),
+        # data=set_role_access(session, role_code, body, current_admin),
+        data=set_role_access(
+            session,
+            role_code,
+            body,
+            current_admin,
+            method=request.method.upper(),
+            path=request.url.path,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        ),
         message="更新成功",
     )

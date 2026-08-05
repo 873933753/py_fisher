@@ -84,10 +84,7 @@ def get_admin_account(session: Session, admin_id: int) -> AdminAccountItem:
 
 def _ensure_can_assign_role(current_admin_role: str, target_role_code: str) -> None:
     """非超管不能把账号设为超级管理员。"""
-    if (
-        target_role_code == ROLE_SUPER_ADMIN
-        and current_admin_role != ROLE_SUPER_ADMIN
-    ):
+    if target_role_code == ROLE_SUPER_ADMIN and current_admin_role != ROLE_SUPER_ADMIN:
         raise AppError("仅超级管理员可分配超级管理员角色")
 
 

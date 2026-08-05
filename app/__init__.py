@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.admin.audit.middleware import AdminShallowAuditMiddleware
 from app.errors import register_exception_handlers
 from app.secure import settings
 
@@ -43,6 +44,9 @@ def create_app():
     # app = FastAPI(lifespan=lifespan)
     register_exception_handlers(app)
     register_apirouter(app)
+
+    # 注册中间件
+    app.add_middleware(AdminShallowAuditMiddleware)
 
     # 注册静态文件路由 - 用于访问静态文件,如图片
     static_dir = Path(__file__).parent / "static"

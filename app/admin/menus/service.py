@@ -366,7 +366,16 @@ def get_role_access(session: Session, role_code: str) -> RoleAccessOut:
 
 
 def set_role_access(
-    session: Session, role_code: str, body: RoleAccessIn
+    # session: Session, role_code: str, body: RoleAccessIn, admin: AdminUser
+    session: Session,
+    role_code: str,
+    body: RoleAccessIn,
+    admin: AdminUser,
+    *,
+    method: str | None = None,
+    path: str | None = None,
+    ip: str | None = None,
+    user_agent: str | None = None,
 ) -> RoleAccessOut:
     if role_code == ROLE_SUPER_ADMIN:
         raise AppError("超级管理员授权不可修改")
@@ -407,6 +416,8 @@ def set_role_access(
             raise AppError(f"接口未归属已选菜单: {', '.join(map(str, sorted(orphan)))}")
     else:
         apis = []
+    # 记录变更前的数据
+    before = get_role_access(session, role_code).model_dump()
 
     with auto_commit(session):
         # 覆盖菜单
@@ -425,4 +436,26 @@ def set_role_access(
         for api in apis:
             session.add(AdminRoleMenuApi(role_id=role.id, menu_api_id=api.id))
 
+    # 业务成功后再记审计
+    from app.admin.audit.service import write_audit
+
+    # 记录变更后的数据
+    after = get_role_access(session, role_code).model_dump()
+    write_audit(
+        session,
+        operator=admin,
+        module="menus",
+        action="set_role_access",
+        resource_type="role_access",
+        resource_id=role.code,
+        request_summary=body.model_dump(),
+        before_summary=before,
+        after_summary=after,
+        success=True,
+        # http 字段
+        method=method,
+        path=path,
+        ip=ip,
+        user_agent=user_agent,
+    )
     return get_role_access(session, role_code)

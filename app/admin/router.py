@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 import app.admin.session_filters  # noqa: F401
 from app.admin.admins.router import admins_router
+from app.admin.audit.router import audit_router
 from app.admin.auth.router import auth_router
 from app.admin.menus.access import require_menu_api
 from app.admin.menus.router import user_menus_router
@@ -12,6 +13,7 @@ from app.admin.users.router import users_router
 admin_router = APIRouter()
 admin_router.include_router(auth_router)  # login/profile 在白名单
 # 其他路由需要菜单api权限
+# require_menu_api有current_admin，会走get_current_admin鉴权，这里不用重复鉴权
 admin_router.include_router(
     users_router, prefix="/users", dependencies=[Depends(require_menu_api)]
 )
@@ -26,4 +28,7 @@ admin_router.include_router(
 )
 admin_router.include_router(
     user_menus_router, prefix="/menus", dependencies=[Depends(require_menu_api)]
+)
+admin_router.include_router(
+    audit_router, prefix="/audit", dependencies=[Depends(require_menu_api)]
 )
