@@ -54,12 +54,15 @@ def _load_menu_api_rules(session: Session) -> list[tuple[int, str, str]]:
 
 
 # (method, path) 精确白名单；method 用大写，path 与 request.url.path 一致
+# 白名单的接口，不进行权限校验
 API_WHITELIST: frozenset[tuple[str, str]] = frozenset(
     {
         ("GET", "/admin/ping"),
         ("POST", "/admin/login"),
         ("GET", "/admin/profile"),
         ("GET", "/admin/menus/userMenu"),
+        ("POST", "/admin/refresh"),
+        ("POST", "/admin/logout"),
     }
 )
 

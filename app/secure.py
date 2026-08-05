@@ -36,7 +36,8 @@ class Settings(BaseSettings):
     # --------------------- 认证 ---------------------
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
-    JWT_EXPIRE_MINUTES: int
+    JWT_EXPIRE_MINUTES: int = 30  # Access Token：短（30分钟）
+    JWT_REFRESH_EXPIRE_DAYS: int = 7  # Refresh Token：长（7天）
     # --------------------- Redis ---------------------
     REDIS_URL: str
 

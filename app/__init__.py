@@ -2,11 +2,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.errors import register_exception_handlers
 from app.secure import settings
-from fastapi.middleware.cors import CORSMiddleware
 
 
 # 在应用启动和关闭时初始化和关闭数据库

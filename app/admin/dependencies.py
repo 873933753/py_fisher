@@ -8,6 +8,7 @@ from fastapi.security import (
 )
 from sqlmodel import Session
 
+from app.admin.auth.token_store import is_admin_access_blacklisted
 from app.admin.models import AdminUser
 from app.admin.security import decode_admin_access_token
 from app.database import get_session
@@ -39,12 +40,18 @@ def get_current_admin(
     if not token:
         raise AppError("未登录或登录已过期", code=401, http_status=401)
 
-    admin_id = decode_admin_access_token(token)
-    if admin_id is None:
+    decoded = decode_admin_access_token(token)
+
+    if decoded is None:
         raise AppError("未登录或登录已过期", code=401, http_status=401)
 
+    # 检查黑名单
+    if is_admin_access_blacklisted(decoded["jti"]):
+        raise AppError("登录已失效，请重新登录", code=401, http_status=401)
+
+    admin_id = decoded["admin_id"]
+
     admin = session.get(AdminUser, admin_id)
-    # 软删除已由 session_filters 处理；get 有时不走同一套 criteria，建议再判一次
     if admin is None or admin.is_deleted != 0:
         raise AppError("用户不存在", code=401, http_status=401)
 

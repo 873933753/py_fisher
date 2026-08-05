@@ -57,4 +57,25 @@ class AdminInfo(BaseModel):
 
 class AdminLoginResult(BaseModel):
     token: str
+    refreshToken: str
     userInfo: AdminInfo
+
+
+""" 刷新token，用refresh换取新的token和refresh """
+
+
+class AdminRefreshIn(BaseModel):
+    refreshToken: str = Field(min_length=1)
+
+
+# 可复用 AdminLoginResult，或单独：
+class AdminRefreshResult(BaseModel):
+    token: str
+    refreshToken: str
+
+
+""" 退出登录 """
+
+
+class AdminLogoutIn(BaseModel):
+    refreshToken: str | None = None
