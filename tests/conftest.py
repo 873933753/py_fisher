@@ -14,6 +14,13 @@ os.environ.setdefault("MAIL_PASSWORD", "x")
 os.environ.setdefault("AppKey", "test-isbn-key")  # ISBN_KEY 的 alias
 os.environ.setdefault("YU_SHU_API_BASE", "https://example.com")
 # 若 import 链会校验 OSS，再补 OSS_*（看报错缺什么加什么）
+os.environ.setdefault("OSS_ACCESS_KEY_ID", "test-oss-key-id")
+os.environ.setdefault("OSS_ACCESS_KEY_SECRET", "test-oss-key-secret")
+os.environ.setdefault("OSS_BUCKET_NAME", "test-bucket")
+os.environ.setdefault("OSS_ENDPOINT", "https://oss-cn-hangzhou.aliyuncs.com")
+os.environ.setdefault(
+    "OSS_PUBLIC_BASE_URL", "https://test-bucket.oss-cn-hangzhou.aliyuncs.com"
+)
 
 import pytest
 from httpx import ASGITransport, AsyncClient

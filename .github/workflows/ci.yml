@@ -46,3 +46,9 @@ jobs:
           MAIL_PASSWORD: x
           AppKey: test-isbn-key
           YU_SHU_API_BASE: https://example.com
+          # oss
+          OSS_ACCESS_KEY_ID: test-oss-key-id
+          OSS_ACCESS_KEY_SECRET: test-oss-key-secret
+          OSS_BUCKET_NAME: test-bucket
+          OSS_ENDPOINT: https://oss-cn-hangzhou.aliyuncs.com
+          OSS_PUBLIC_BASE_URL: https://test-bucket.oss-cn-hangzhou.aliyuncs.com
