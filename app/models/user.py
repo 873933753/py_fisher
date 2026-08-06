@@ -25,6 +25,7 @@ class User(BaseModel, table=True):
     # primary_key=True 的主键默认就有索引，一般不需要再写 index=True
     id: Optional[int] = Field(default=None, primary_key=True)
     nickname: Optional[str] = Field(default=None, max_length=24)
+    avatar: Optional[str] = Field(default=None, max_length=255)
     phone_number: Optional[str] = Field(default=None, max_length=18, unique=True)
     email: str = Field(max_length=50, unique=True)
     confirmed: bool = Field(default=False)
@@ -117,7 +118,7 @@ class User(BaseModel, table=True):
 
     # 按照邮箱查询用户
     @classmethod
-    def get_user_by_email(cls, session: Session, email: str) -> Optional[User]:
+    def get_user_by_email(cls, session: Session, email: str) -> Optional["User"]:
         return session.exec(
             select(cls).where(cls.email == email)
             # first_or_none() - 如果查询结果为空，则返回 None
@@ -155,7 +156,7 @@ class User(BaseModel, table=True):
 
     # 按照id查询用户
     @classmethod
-    def get_user_by_id(cls, session: Session, user_id: int) -> Optional[User]:
+    def get_user_by_id(cls, session: Session, user_id: int) -> Optional["User"]:
         user = session.get(cls, user_id)
         if not user:
             raise AppError("用户不存在")

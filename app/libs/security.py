@@ -5,6 +5,10 @@ import jwt
 
 from app.secure import settings
 
+# 区分登录 JWT,token类型
+ACCESS_TOKEN_TYPE = "access_token"
+RESET_PASSWORD_TOKEN_TYPE = "reset_password_token"
+
 
 # 密码加密
 def hash_password(plain: str) -> str:
@@ -26,7 +30,7 @@ def create_access_token(user_id: int) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
         "sub": str(user_id),  # subject，放用户 id
-        "type": "access_token",  # 区分登录 JWT
+        "type": ACCESS_TOKEN_TYPE,  # 区分登录 JWT
         "exp": expire,  # 过期时间
     }
     return jwt.encode(
@@ -41,7 +45,7 @@ def decode_access_token(token: str) -> int | None:
             token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
         # 校验类型，防止重置密码token被用其他token解析，这里只能解析登录token
-        if payload.get("type") != "access_token":
+        if payload.get("type") != ACCESS_TOKEN_TYPE:
             return None
         return int(payload["sub"])
     except jwt.PyJWTError:
@@ -57,7 +61,7 @@ def create_reset_token(user_id: int, expiration: int = 300) -> str:
     expire = datetime.now(timezone.utc) + timedelta(seconds=expiration)
     payload = {
         "sub": str(user_id),
-        "type": "reset_password",  # 区分登录 JWT
+        "type": RESET_PASSWORD_TOKEN_TYPE,  # 区分登录 JWT
         "exp": expire,
         "jti": jti,  # 唯一标识，防止重放攻击
     }
@@ -73,7 +77,7 @@ def decode_reset_token(token: str) -> int | None:
         payload = jwt.decode(
             token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
-        if payload.get("type") != "reset_password":
+        if payload.get("type") != RESET_PASSWORD_TOKEN_TYPE:
             return None
         return int(payload["sub"]), payload["jti"]
     except jwt.PyJWTError:

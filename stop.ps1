@@ -1,5 +1,5 @@
 ﻿# Stop processes occupying port 8000 (incl. uvicorn reload leftovers)
-$port = 8000
+$port = 8010
 
 $pids = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
   Select-Object -ExpandProperty OwningProcess -Unique

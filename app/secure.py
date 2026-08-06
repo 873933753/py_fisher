@@ -31,10 +31,13 @@ class Settings(BaseSettings):
     APP_ENV: str = "dev"
     DATABASE_URL: str
     SQL_ECHO: bool = False
+    # 逗号分隔；空 = 不启用 CORS（或仅开发默认）
+    CORS_ORIGINS: str = ""  # 允许的跨域请求源，多个用逗号分隔
     # --------------------- 认证 ---------------------
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
-    JWT_EXPIRE_MINUTES: int
+    JWT_EXPIRE_MINUTES: int = 30  # Access Token：短（30分钟）
+    JWT_REFRESH_EXPIRE_DAYS: int = 7  # Refresh Token：长（7天）
     # --------------------- Redis ---------------------
     REDIS_URL: str
 
@@ -63,6 +66,13 @@ class Settings(BaseSettings):
     def MAIL_SENDER(self) -> str:
         return f"Hanber <{self.MAIL_USERNAME}>"
 
+    # 解析CORS_ORIGINS为列表
+    @property
+    def cors_origin_list(self) -> list[str]:
+        if not self.CORS_ORIGINS.strip():
+            return []
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -75,3 +85,46 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+# oss配置
+class OSSSettings(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
+
+    OSS_ACCESS_KEY_ID: str
+    OSS_ACCESS_KEY_SECRET: str
+    OSS_BUCKET_NAME: str
+    OSS_ENDPOINT: str
+    OSS_PUBLIC_BASE_URL: str
+
+    @field_validator("OSS_PUBLIC_BASE_URL", "OSS_ENDPOINT")
+    @classmethod
+    def strip_trailing_slash(cls, v: str) -> str:
+        return v.rstrip("/")
+
+
+@lru_cache
+def get_oss_settings() -> OSSSettings:
+    return OSSSettings()
+
+
+oss_settings = get_oss_settings()
+
+
+# 数据库连接池设置
+class DBPoolSettings(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
+
+    # 数据库连接池（生产建议显式配置）
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 3600  # 秒；小于 MySQL wait_timeout
+    DB_POOL_PRE_PING: bool = True
+
+
+@lru_cache
+def get_db_pool_settings() -> DBPoolSettings:
+    return DBPoolSettings()
+
+
+db_pool_settings = get_db_pool_settings()
