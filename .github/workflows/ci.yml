@@ -6,8 +6,10 @@ name: CI
 
 on:
   # 在 main/master 分支 push 时，触发 CI
+  # 开发分支不用监听，因为开发分支会自动触发 CI
   push:
-    branches: [dev,main, master]
+    branches: [main, master]
+  # 推 dev + 更新 PR → 通常只跑 PR 那一次；合并进 main 再因 push 跑一次
   pull_request:
 
 jobs:
