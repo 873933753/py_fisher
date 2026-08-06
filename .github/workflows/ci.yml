@@ -1,0 +1,48 @@
+name: CI
+
+# ruff：风格/明显错误，秒级失败
+# pytest：锁住 JWT / request_id / OpenAPI 契约
+# CI 里显式 env：即使有人改坏 conftest，流水线仍不依赖本机 .env
+
+on:
+  # 在 main/master 分支 push 时，触发 CI
+  push:
+    branches: [dev,main, master]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"   # 3.14 在 Actions 上可能不稳；CI 用 3.12 即可
+          cache: pip
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements-dev.txt
+          pip install ruff
+
+      - name: Ruff check
+        run: ruff check app tests
+
+      - name: Ruff format
+        run: ruff format --check app tests
+
+      - name: Pytest
+        run: pytest
+        env:
+          # conftest 里已有 setdefault；这里再显式写一份更稳（不依赖仓库里的 .env）
+          APP_ENV: dev
+          DATABASE_URL: mysql+pymysql://u:p@127.0.0.1:3306/test
+          JWT_SECRET_KEY: est-secret-key-for-ci-only-32bytes!!-Wfwd4CBr7mtzyEfhepOsVXvCrC0KBSUJLLm3bzM0nl_xClBA
+          JWT_ALGORITHM: HS256
+          REDIS_URL: redis://127.0.0.1:6379/15
+          MAIL_USERNAME: test@example.com
+          MAIL_PASSWORD: x
+          AppKey: test-isbn-key
+          YU_SHU_API_BASE: https://example.com

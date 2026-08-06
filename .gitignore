@@ -16,4 +16,7 @@ docs/*
 # !docs/plan/**
 
 # 测试：以 fisher/tests 为准入库；根目录 tests/ 仍忽略（若存在）
-tests/
+# tests/
+.pytest_cache/
+.coverage
+htmlcov/
