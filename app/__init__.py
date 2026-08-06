@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.admin.audit.middleware import AdminShallowAuditMiddleware
 from app.errors import register_exception_handlers
+from app.middleware.request_id import RequestIdMiddleware
 from app.secure import settings
 
 
@@ -22,6 +23,12 @@ async def lifespan(app: FastAPI):
 
 
 def create_app():
+    # 启动调用一次，设置日志格式
+    from app.libs.logging_setup import setup_logging
+
+    # 开发环境日志更详细，生产环境日志更简洁
+    setup_logging("DEBUG" if not settings.IS_PROD else "INFO")
+
     # 生产禁用 /docs、/redoc
 
     app_kwargs = {"lifespan": lifespan}
@@ -45,8 +52,11 @@ def create_app():
     register_exception_handlers(app)
     register_apirouter(app)
 
-    # 注册中间件
+    # 注册中间件, 审计浅层请求
     app.add_middleware(AdminShallowAuditMiddleware)
+
+    # 注册中间件, request_id middleware
+    app.add_middleware(RequestIdMiddleware)
 
     # 注册静态文件路由 - 用于访问静态文件,如图片
     static_dir = Path(__file__).parent / "static"
